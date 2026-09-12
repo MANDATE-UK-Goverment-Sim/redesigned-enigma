@@ -7,6 +7,73 @@
   <title>New H Election Night</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="style.css" />
+
+  <style>
+    /* ===== Full-screen presentation controls ===== */
+    .nh-fs-button{
+      appearance:none;border:1px solid rgba(255,255,255,.13);background:rgba(7,12,20,.72);
+      color:#dce8f7;border-radius:10px;padding:8px 10px;display:inline-flex;align-items:center;gap:7px;
+      font:800 10px/1 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.10em;
+      text-transform:uppercase;cursor:pointer;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 8px 24px rgba(0,0,0,.22);transition:.18s ease;
+      flex:0 0 auto;z-index:8
+    }
+    .nh-fs-button:hover{background:rgba(28,43,62,.92);border-color:rgba(255,255,255,.25);transform:translateY(-1px)}
+    .nh-fs-button:active{transform:translateY(0)}
+    .nh-fs-button svg{width:13px;height:13px;stroke:currentColor;stroke-width:1.9;fill:none}
+    .nh-fs-card-controls{margin-left:auto;display:flex;align-items:center;gap:8px}
+    .card-heading .nh-fs-card-controls{align-self:flex-start}
+    .nh-page-fs{position:fixed;right:16px;bottom:66px;z-index:1500;box-shadow:0 10px 32px rgba(0,0,0,.36)}
+    .nh-page-fs .nh-fs-label{display:inline}
+
+    /* The selected broadcast module becomes a proper full-screen scene. */
+    .broadcast-card:fullscreen,.broadcast-card:-webkit-full-screen{
+      box-sizing:border-box;width:100vw!important;height:100vh!important;max-width:none!important;max-height:none!important;
+      margin:0!important;border-radius:0!important;border:0!important;padding:24px!important;overflow:auto!important;
+      background:radial-gradient(circle at 35% 20%,rgba(38,83,132,.16),transparent 36%),linear-gradient(180deg,#111926 0%,#070b12 100%)!important
+    }
+    .broadcast-card:fullscreen .card-heading,.broadcast-card:-webkit-full-screen .card-heading{position:relative;z-index:10}
+    .map-card:fullscreen,.map-card:-webkit-full-screen{display:flex!important;flex-direction:column!important}
+    .map-card:fullscreen .map-content-grid,.map-card:-webkit-full-screen .map-content-grid{
+      flex:1!important;min-height:0!important;height:auto!important;grid-template-columns:minmax(0,1fr) minmax(280px,340px)!important
+    }
+    .map-card:fullscreen .map-stage,.map-card:-webkit-full-screen .map-stage,
+    .map-card:fullscreen .seat-focus,.map-card:-webkit-full-screen .seat-focus{height:100%!important;min-height:0!important}
+    .map-card:fullscreen #constituencyMap,.map-card:-webkit-full-screen #constituencyMap{width:100%!important;height:100%!important;max-height:none!important}
+    .map-card:fullscreen .map-watermark,.map-card:-webkit-full-screen .map-watermark{font-size:8vw}
+    .totals-card:fullscreen .seat-totals,.totals-card:-webkit-full-screen .seat-totals{max-width:1100px;width:100%;margin:24px auto 0}
+    .totals-card:fullscreen .majority-track-wrap,.totals-card:-webkit-full-screen .majority-track-wrap{max-width:1100px;width:100%;margin:28px auto 0}
+    .projection-card:fullscreen .projection-grid,.projection-card:-webkit-full-screen .projection-grid{
+      max-width:1300px;width:100%;margin:28px auto 0;grid-template-columns:repeat(4,minmax(0,1fr))
+    }
+    .declaration-card:fullscreen .declaration-log,.declaration-card:-webkit-full-screen .declaration-log{
+      grid-template-columns:repeat(4,minmax(0,1fr));max-width:1500px;width:100%;margin:22px auto 0
+    }
+    .council-map-card:fullscreen .county-blocks,.council-map-card:-webkit-full-screen .county-blocks{
+      grid-template-columns:repeat(6,minmax(0,1fr));max-width:1500px;width:100%;margin:20px auto 0
+    }
+    .council-grid>.broadcast-card:fullscreen,.council-grid>.broadcast-card:-webkit-full-screen{display:block!important}
+    .council-grid>.broadcast-card:fullscreen .council-totals,.council-grid>.broadcast-card:-webkit-full-screen .council-totals,
+    .council-grid>.broadcast-card:fullscreen .declaration-log,.council-grid>.broadcast-card:-webkit-full-screen .declaration-log{max-width:1300px;margin:24px auto 0}
+    .council-hero:fullscreen,.council-hero:-webkit-full-screen{display:flex!important;align-items:center!important;justify-content:center!important;gap:70px!important}
+
+    /* Browser full-screen for the whole presentation. */
+    .presentation-shell:fullscreen,.presentation-shell:-webkit-full-screen{width:100vw;height:100vh;overflow:auto;background:#070b12}
+    .presentation-shell:fullscreen .broadcast-header,.presentation-shell:-webkit-full-screen .broadcast-header{position:sticky;top:0;z-index:50}
+
+    .nh-fs-toast{position:fixed;left:50%;bottom:78px;transform:translate(-50%,18px);opacity:0;pointer-events:none;z-index:2500;
+      padding:9px 13px;border:1px solid rgba(255,255,255,.13);border-radius:10px;background:rgba(5,9,15,.88);color:#d9e7f7;
+      font:750 11px/1.2 system-ui,sans-serif;letter-spacing:.05em;backdrop-filter:blur(12px);transition:.22s ease}
+    .nh-fs-toast.show{opacity:1;transform:translate(-50%,0)}
+    @media (max-width:820px){
+      .nh-page-fs{right:10px;bottom:64px}.nh-page-fs .nh-fs-label{display:none}.nh-page-fs{padding:10px}
+      .map-card:fullscreen .map-content-grid,.map-card:-webkit-full-screen .map-content-grid{grid-template-columns:1fr!important}
+      .map-card:fullscreen .seat-focus,.map-card:-webkit-full-screen .seat-focus{height:auto!important;min-height:220px!important}
+      .declaration-card:fullscreen .declaration-log,.declaration-card:-webkit-full-screen .declaration-log{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .projection-card:fullscreen .projection-grid,.projection-card:-webkit-full-screen .projection-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .council-map-card:fullscreen .county-blocks,.council-map-card:-webkit-full-screen .county-blocks{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+  </style>
 </head>
 <body class="presentation-body">
   <div id="presentation" class="presentation-shell">
@@ -148,5 +215,99 @@
   <script src="data.js"></script>
   <script src="core.js"></script>
   <script src="presentation.js"></script>
+
+  <script>
+    // ===== New H section/full-page Fullscreen API =====
+    (() => {
+      const expandIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg>`;
+      const shrinkIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h5V3M21 8h-5V3M3 16h5v5M21 16h-5v5"/></svg>`;
+      const fullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+
+      function showToast(text){
+        let toast=document.querySelector('.nh-fs-toast');
+        if(!toast){toast=document.createElement('div');toast.className='nh-fs-toast';document.body.appendChild(toast)}
+        toast.textContent=text;toast.classList.add('show');
+        clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>toast.classList.remove('show'),1800);
+      }
+
+      async function requestFullscreen(el){
+        try{
+          if(el.requestFullscreen) await el.requestFullscreen();
+          else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        }catch(err){showToast('Full screen was blocked by the browser');}
+      }
+      async function exitFullscreen(){
+        try{
+          if(document.exitFullscreen) await document.exitFullscreen();
+          else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+        }catch(_){}
+      }
+      async function toggleFullscreen(el){
+        if(fullscreenElement()) await exitFullscreen(); else await requestFullscreen(el);
+      }
+
+      function makeButton(target,label='Full screen'){
+        const button=document.createElement('button');
+        button.type='button';button.className='nh-fs-button';button.setAttribute('aria-label',`${label} full screen`);
+        button.innerHTML=`${expandIcon}<span>${label}</span>`;
+        button.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();toggleFullscreen(target)});
+        return button;
+      }
+
+      function attachCardButton(card,label){
+        if(!card || card.dataset.fullscreenReady) return;
+        card.dataset.fullscreenReady='true';
+        const heading=card.querySelector(':scope > .card-heading');
+        const button=makeButton(card,'Expand');
+        if(heading){
+          let controls=heading.querySelector('.nh-fs-card-controls');
+          if(!controls){controls=document.createElement('div');controls.className='nh-fs-card-controls';heading.appendChild(controls)}
+          controls.appendChild(button);
+        }else{
+          button.style.position='absolute';button.style.right='16px';button.style.top='16px';
+          if(getComputedStyle(card).position==='static') card.style.position='relative';
+          card.appendChild(button);
+        }
+        if(label) button.setAttribute('title',`Full screen: ${label}`);
+      }
+
+      // General-election presentation modules.
+      attachCardButton(document.querySelector('.map-card'),'Constituency map');
+      attachCardButton(document.querySelector('.totals-card'),'Seat totals');
+      attachCardButton(document.querySelector('#projectionCard'),'Live projection');
+      attachCardButton(document.querySelector('.declaration-card'),'Latest declarations');
+
+      // Council-election presentation modules.
+      attachCardButton(document.querySelector('.council-hero'),'Council overview');
+      document.querySelectorAll('.council-grid > .broadcast-card').forEach((card,i)=>attachCardButton(card,i===0?'Council control':'Latest councils'));
+      attachCardButton(document.querySelector('.council-map-card'),'Council map');
+
+      // One button for the complete presentation, useful when this page is on a TV/projector.
+      const shell=document.getElementById('presentation');
+      if(shell){
+        const pageButton=makeButton(shell,'Full screen');
+        pageButton.classList.add('nh-page-fs');
+        pageButton.innerHTML=`${expandIcon}<span class="nh-fs-label">Full screen</span>`;
+        document.body.appendChild(pageButton);
+      }
+
+      function syncButtons(){
+        const active=fullscreenElement();
+        document.querySelectorAll('.nh-fs-button').forEach(btn=>{
+          const activeForButton=active && ((btn.classList.contains('nh-page-fs') && active===shell) || (!btn.classList.contains('nh-page-fs') && active && active.contains(btn)));
+          if(activeForButton){
+            const span=btn.querySelector('span');btn.querySelector('svg')?.remove();btn.insertAdjacentHTML('afterbegin',shrinkIcon);
+            if(span) span.textContent='Exit full screen';
+          }else{
+            const span=btn.querySelector('span');btn.querySelector('svg')?.remove();btn.insertAdjacentHTML('afterbegin',expandIcon);
+            if(span) span.textContent=btn.classList.contains('nh-page-fs')?'Full screen':'Expand';
+          }
+        });
+        if(active) showToast('Press Esc to leave full screen');
+      }
+      document.addEventListener('fullscreenchange',syncButtons);
+      document.addEventListener('webkitfullscreenchange',syncButtons);
+    })();
+  </script>
 </body>
 </html>
